@@ -1,5 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd"></mule>
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<db:config name="Database_Config1" doc:name="Database Config" doc:id="9830ca76-fd8e-4115-95d5-4d1ac0e4a7bc" >
+		<db:mssql-connection host="localhost" instanceName="SQLEXPRESS" port="1433" user="mule_user" password="StrongPassword123!" databaseName="sravan" />
+	</db:config>
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="f8330beb-38e0-46fb-9880-a23636ed9cfe" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="mulesoft-sql-crud-serviceFlow" doc:id="03adde69-1fe4-4350-87f6-064a4f7db1f7" >
+		<http:listener doc:name="Listener" doc:id="ba02b58b-ee56-4536-abef-f754539a983f" config-ref="HTTP_Listener_config" path="/users" allowedMethods="POST"/>
+		<db:insert doc:name="Insert" doc:id="59b6aff8-292f-4d30-bab4-ca78794960bd" config-ref="Database_Config1">
+			<db:sql ><![CDATA[INSERT INTO [dbo].[user] ([fnane], [lname], [mname], [fullname], [user_number], [created_date], [last_modified_date]) VALUES (:fnane, :lname, :mname, :fullname, :user_number, :created_date, :last_modified_date)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[payload]]]></db:input-parameters>
+			
+		</db:insert>
+		<ee:transform doc:name="Transform Message" doc:id="8651ad74-a060-4fca-af24-4008919f2f1e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
