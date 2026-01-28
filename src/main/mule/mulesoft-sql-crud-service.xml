@@ -12,7 +12,7 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="f8330beb-38e0-46fb-9880-a23636ed9cfe" >
 		<http:listener-connection host="0.0.0.0" port="8081" />
 	</http:listener-config>
-	<flow name="mulesoft-sql-crud-serviceFlow" doc:id="03adde69-1fe4-4350-87f6-064a4f7db1f7" >
+	<flow name="mulesoft-sql-user-insert" doc:id="03adde69-1fe4-4350-87f6-064a4f7db1f7" >
 		<http:listener doc:name="Listener" doc:id="ba02b58b-ee56-4536-abef-f754539a983f" config-ref="HTTP_Listener_config" path="/users" allowedMethods="POST"/>
 		<db:insert doc:name="Insert" doc:id="59b6aff8-292f-4d30-bab4-ca78794960bd" config-ref="Database_Config1">
 			<db:sql ><![CDATA[INSERT INTO [dbo].[user] ([fnane], [lname], [mname], [fullname], [user_number], [created_date], [last_modified_date]) VALUES (:fnane, :lname, :mname, :fullname, :user_number, :created_date, :last_modified_date)]]></db:sql>
@@ -27,5 +27,36 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+	</flow>
+	<flow name="mulesoft-sql-select-users" doc:id="5dba2afc-42e6-46d2-b945-a567f62086bf" >
+		<http:listener doc:name="Listener" doc:id="4ec8553d-155f-4e3c-b093-cdb03556b64f" config-ref="HTTP_Listener_config" path="/users" allowedMethods="GET"/>
+		<db:select doc:name="get users" doc:id="5dabd958-9695-41f1-ae6b-2e211305a19e" config-ref="Database_Config1">
+			<db:sql ><![CDATA[SELECT * FROM [sravan].[dbo].[user]]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="users response" doc:id="a41d4c2a-c5eb-4f4b-b44a-7a9854d22567">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="mulesoft-sql-delete-user" doc:id="70c8c7d4-5426-4d9a-a3bc-15388ccf150b" >
+		<http:listener doc:name="Listener" doc:id="4553e087-d74c-4c3e-8b67-6e70efab4f14" config-ref="HTTP_Listener_config" path="/delete/user/{userId}"/>
+		<ee:transform doc:name="payload" doc:id="eeb14af6-1467-486f-b3e3-6d56c45a5532" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	"sno": attributes.uriParams.userId as String
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:delete doc:name="Delete" doc:id="2d41cdaa-1c45-4a1b-b80e-9c7f97a483cd" config-ref="Database_Config1">
+			<db:sql ><![CDATA[DELETE FROM [dbo].[user] WHERE sno = :sno]]></db:sql>
+			<db:input-parameters ><![CDATA[#[payload]]]></db:input-parameters>
+		</db:delete>
 	</flow>
 </mule>
